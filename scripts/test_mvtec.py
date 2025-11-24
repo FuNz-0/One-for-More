@@ -25,8 +25,20 @@ def main(args):
 
     log = f'demo_task{args.task}'
 
-    weights = torch.load(resume_path)
-    model.load_state_dict(weights, strict=False)
+# ✅ 修正后的代码
+    print(f"Loading weights from {resume_path}")
+    checkpoint = torch.load(resume_path, map_location='cpu')
+
+    # 【核心修复】检查是否包含 'state_dict' 键（拆包裹）
+    if 'state_dict' in checkpoint:
+        weights = checkpoint['state_dict']
+    else:
+        weights = checkpoint
+
+    # 加载参数到模型
+    # strict=False 是必须的，以防有一些无关的键不匹配
+    msg = model.load_state_dict(weights, strict=False)
+    print(f"权重加载完成。缺失键(Missing): {len(msg.missing_keys)} 个, 多余键(Unexpected): {len(msg.unexpected_keys)} 个")
 
     # Misc
     dataset, _ = MVTecDataset_cad('test', args.data_path, args.setting)
@@ -124,7 +136,7 @@ if __name__ == "__main__":
 
     parser.add_argument("--setting", default=1, type=int)
 
-    parser.add_argument("--task", default=1, type=int)
+    parser.add_argument("--task", default=0, type=int)
 
     parser.add_argument("--seed", default=1, type=int)
 

@@ -1,11 +1,32 @@
 import sys
 import os
 sys.path.append(os.getcwd())
+# --- 核心限制 (Part 1: 设置环境变量) ---
+cpu_num = 1
+os.environ['OMP_NUM_THREADS'] = str(cpu_num)
+os.environ['OPENBLAS_NUM_THREADS'] = str(cpu_num)
+os.environ['MKL_NUM_THREADS'] = str(cpu_num)
+os.environ['VECLIB_MAXIMUM_THREADS'] = str(cpu_num)
+os.environ['NUMEXPR_NUM_THREADS'] = str(cpu_num)
+# ------------------------------------------
+
+
 from share import *
 from utils.util import *
 import torch
 import pytorch_lightning as pl
 from torch.utils.data import DataLoader
+
+
+# --- 核心限制 (Part 2: 设置 PyTorch 内部线程) ---
+# 由于 numpy 和 torch 已经导入，这里可以直接使用它们
+# 重新定义 cpu_num 变量以防万一，但最好在 Part 1 中将其定义为一个全局可用的变量或常数
+cpu_num = 1 
+torch.set_num_threads(cpu_num)
+torch.multiprocessing.set_sharing_strategy('file_system')
+# ----------------------------------------------------
+
+
 from data.visa_dataloader import VisADataset_cad
 from cdm.model import create_model, load_state_dict
 from pytorch_lightning.callbacks import ModelCheckpoint
@@ -37,7 +58,7 @@ def main(args):
             filename=f'task{i}_best',
             mode='max')
 
-        trainer = pl.Trainer(gpus=1, precision=32,
+        trainer = pl.Trainer(gpus=[4,5,6,7], precision=32, strategy='ddp',
                             callbacks=[ckpt_callback_val, ],
                             num_sanity_val_steps=0,
                             accumulate_grad_batches=1,     # Do not change!!!
