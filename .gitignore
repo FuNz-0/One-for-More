@@ -1,0 +1,31 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+__pycache__
+
+
+flash-attention
+tensorboard_logs
+# 忽略模型权重文件，但保留源代码
+*.ckpt
+*.pth
+*.pt
+*.safetensors
+**/models/*.ckpt
+**/models/*.pth
+**/models/*.pt
+**/models/*.safetensors
+# 如果有专门的模型权重目录，可以具体指定
+# /path/to/model/weights/
+outputs
+/data
+!/data/**/*.py
+lightning_logs
+log_image
+logs
+TEST
+kl-f8.zip
+incre_val
+data
